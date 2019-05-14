@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> Messier Rank </title>
+
+  <link rel='stylesheet' type="text/css" href='messier/messierStyle.css'>
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <link rel="shortcut icon" href="messier/img/favicon.png">
+
+
+</head>
+<body>
+  <div class='title'>
+    <h1>
+      Select the better Messier object
+    </h1> 
+  </div>
+
+  <div class='rank-box'>
+    <div class="messier_container obj_1">
+      <div class="messier_image_cont">
+        <div class="loading">
+          Loading...
+        </div>
+        <img class="messier_image">
+
+        </img>
+      </div>
+
+      <div class="messier_label">
+      </div>
+    </div>
+
+    <div class="messier_container obj_2">
+      <div class="messier_image_cont">
+        <div class="loading">
+          Loading...
+        </div>
+        <img class="messier_image">
+        </img>
+      </div>
+
+      <div class="messier_label">
+      </div>
+    </div>
+  </div>
+
+  <div class="credits">
+    <a href="https://twitter.com/NicholasMehrle" class="credit creditOne">
+      @NicholasMehrle
+    </a>
+    <a href="https://twitter.com/KaleyBrauer" class="credit creditTwo">
+      @KaleyBrauer
+    </a>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/5.10.1/firebase.js"></script>
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyCWUda-jN_N_kCbV5EnqO8ED4o0BqEQc98",
+      authDomain: "messierrank.firebaseapp.com",
+      databaseURL: "https://messierrank.firebaseio.com",
+      projectId: "messierrank",
+      storageBucket: "messierrank.appspot.com",
+      messagingSenderId: "887901245951"
+    };
+    firebase.initializeApp(config);
+  </script>
+  
+  <script type="text/javascript" src="script/jquery.min.js"></script>
+  <script type="text/javascript" src="messier/messierRank.js"></script>
+</body>
+</html>
