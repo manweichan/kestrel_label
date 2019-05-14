@@ -8,7 +8,7 @@ body {
   color: #444;
   font-size: 18px;
   padding: 0 10px;
-
+  font-style: sans-serif;
 }
 
 .title h1 {
@@ -111,12 +111,20 @@ body {
   text-align: center; 
   width: 70%;
   margin: 0 auto;
+
+  font-size: 0;
 }
 
 .credit {
+  width: 100%;
   display: block;
+  text-align: center;
+
+  margin: 5px 0;
+}
+
+.credit-button {
   box-sizing: border-box;
-  position: absolute;
 
   background-color: #444;
   border-top: 3px solid #444;
@@ -126,25 +134,16 @@ body {
 
   cursor: pointer;
 
-  font-size: 14px;
+  font-size: 16px;
   padding: 0px 5px;
   color: white;
   font-style: bold;
   text-decoration: none;
 }
 
-.credit:hover { 
+.credit-button:hover { 
   border-bottom: 3px solid #db5151;
 }
-
-.creditOne {
-  left: 0;
-}
-
-.creditTwo {
-  right: 0;
-}
-
 
 /* Styles for computers */
 @media screen and (min-width: 601px){
@@ -192,11 +191,13 @@ body {
   }
 
   .credits {
-    max-width: 400px;
+    max-width: 600px;
   }
 
   .credit {
-    font-size: 18px;
+    width: 33%;
+    font-size: 20px;
+    display: inline-block;
   }
 }
 
