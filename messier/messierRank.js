@@ -38,6 +38,17 @@ logClick(currentObjects[1], currentObjects[0]);
 chooseObjects()
 })
 
+window.onkeydown = function(event) {
+  if ((event.keyCode == 65) ||(event.keyCode == 37)) {
+    logClick(currentObjects[0], currentObjects[1]);
+    chooseObjects()
+  }
+  if ((event.keyCode == 68) ||(event.keyCode == 39)) {
+    logClick(currentObjects[1], currentObjects[0]);
+    chooseObjects()
+  }
+}
+
 function createArray(length) {
     var arr = new Array(length || 0),
         i = length;
