@@ -18,8 +18,8 @@ function chooseObjects() {
   currentObjects[0] = ind1
   currentObjects[1] = ind2
   
-  str1 = 'messier/img/M'+ind1+'.jpg'
-  str2 = 'messier/img/M'+ind2+'.jpg'
+  str1 = 'img/M'+ind1+'.jpg'
+  str2 = 'img/M'+ind2+'.jpg'
 
   $(".obj_1 .messier_image").attr('src',str1)
   $(".obj_2 .messier_image").attr('src',str2)
