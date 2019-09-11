@@ -449,6 +449,7 @@ body {
   .results-link {
     position: relative;
     top: 0;
+    display: inline-block;
     margin-bottom: 5px;
   }
 }
