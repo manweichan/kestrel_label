@@ -30,22 +30,25 @@ body {
   position: absolute;
   top: 10px;
   right: 0px;
-  text-align: right;
+  text-align: left;
 }
 
-.links-box a {
+.link {
   display: block;
   font-size: 16px;
   font-weight: bold;
 
   color: #333;
   text-decoration: none;
+  border-left: 3px solid #db5151;
+  line-height: 1;
+  margin: 2px 0;
+  padding-left: 2px;
 }
 
-.links-box a:hover {
-  /*text-decoration: underline;*/
+.link:hover {
   border-bottom: 3px solid #db5151;
-  /*text-decoration-color: #db5151;*/
+  border-bottom-left-radius: 5px;
 }
 
 .links-box-mobile {
@@ -56,16 +59,21 @@ body {
   max-width: 200px;
 }
 
-.links-box-mobile a {
+.links-box-mobile .link {
   display: inline-block;
   font-size: 24px;
+  border-left: 4px solid #db5151;
 }
 
-.links-box-mobile a:first-child {
+.links-box-mobile .link:hover {
+  border-bottom: 4px solid #db5151;
+}
+
+.links-box-mobile .link:first-child {
   float: left;
 }
 
-.links-box-mobile a:last-child {
+.links-box-mobile .link:last-child {
   float: right;
 }
 
@@ -215,6 +223,50 @@ body {
   border-bottom: 3px solid #db5151;
 }
 
+
+.about-title {
+  padding-bottom: 10px;
+  max-width: 1200px;
+  width: 90%;
+  position: relative;
+}
+
+.about-title a {
+  position: absolute;
+  right: 0px;
+  top: 8px;
+  font-size: 18px
+}
+
+.about-page-body {
+  margin: 30px auto;
+  /*max-width: 80%;*/
+  width: 90%;
+  max-width: 1200px;
+  line-height: 1.3;
+  text-align: justify;
+}
+
+.about-credit {
+  display: inline-block;
+}
+
+.about-credit a {
+  font-size: 18px;
+}
+
+.about-page-body h2 {
+  text-decoration: underline;
+}
+
+.about-page-body img {
+  float: right;
+  width: 300px;
+  margin-left: 15px;
+  /*margin-top: -50px;*/
+  /*margin-bottom: 50px;*/
+}
+
 /* Styles for computers */
 @media screen and (min-width: 601px){
   .title{
@@ -223,6 +275,11 @@ body {
 
   .links-box-full {
     display: block;
+  }
+
+  .links-box-full a:first-child {
+    margin-bottom: 5px;
+    width: 80%;
   }
 
   .links-box-mobile {
@@ -300,6 +357,10 @@ body {
     height: auto;
   }
 
+  .about-title a {
+    top: 2px;
+  }
+
   .messier_container {
     width: 70%;
   }
@@ -307,48 +368,6 @@ body {
   .messier_label {
     font-size: 16px;
   }
-}
-
-.about-title {
-  padding-bottom: 10px;
-  max-width: 1200px;
-  width: 90%;
-  position: relative;
-}
-
-.about-title a {
-  position: absolute;
-  left: 0px;
-  top: 0;
-}
-
-.about-page-body {
-  margin: 30px auto;
-  /*max-width: 80%;*/
-  width: 90%;
-  max-width: 1200px;
-  line-height: 1.3;
-  text-align: justify;
-}
-
-.about-credit {
-  display: inline-block;
-}
-
-.about-credit a {
-  font-size: 18px;
-}
-
-.about-page-body h2 {
-  text-decoration: underline;
-}
-
-.about-page-body img {
-  float: right;
-  width: 300px;
-  margin-left: 15px;
-  /*margin-top: -50px;*/
-  /*margin-bottom: 50px;*/
 }
 
 @media screen and (max-width: 600px){
@@ -362,5 +381,12 @@ body {
     float: none;
     margin: 0 auto 10px;
     display: block;
+  }
+}
+
+@media screen and (max-width: 350px) {
+  .about-title a {
+    position: relative;
+    display: inline-block;
   }
 }
