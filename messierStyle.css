@@ -16,6 +16,7 @@ body {
   margin: 0 auto 20px;
   border-bottom: 3px solid #333;
   max-width: 80%;
+  text-align: center;
 }
 
 .title h1 {
@@ -253,13 +254,17 @@ body {
   .messier_label {
     font-size: 16px;
   }
-} 
+}
 
+.about-title {
+  padding-bottom: 10px;
+}
 
 .about-page-body {
   margin: 30px auto;
   max-width: 80%;
   line-height: 1.3;
+  text-align: justify;
 }
 
 .about-page-body h2 {
@@ -269,12 +274,13 @@ body {
 .about-page-body img {
   float: right;
   width: 300px;
-  margin-top: -50px;
+  margin-left: 15px;
+  /*margin-top: -50px;*/
+  /*margin-bottom: 50px;*/
 }
 
 @media screen and (max-width: 600px){
   .about-page-body img {
     margin-top: 0;
   }
-}
 }
