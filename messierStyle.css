@@ -24,6 +24,7 @@ body {
 .rank-box {
   /*background-color: red;*/
   overflow: auto;
+  position: relative;
 }
 
 .separator {
@@ -117,6 +118,8 @@ body {
 
 .about {
   text-align: center;
+  position: relative;
+  z-index: 2;
 }
 
 .about-button {
