@@ -23,6 +23,26 @@ async function getResults() {
   }
 }
 
+function countVotes() {
+  nObj = 110
+  totalVotes = 0
+  blah = getResults();
+  blah.then(function(arr) {
+    for (let i = 1; i < nObj+1; i++) {
+      let score = 0;
+      let j;
+      for (j=1; j<nObj+1; j++) {
+        let x = arr[i][j];
+        if (x !== undefined) {
+          score+=arr[i][j];  
+        }
+      }
+      totalVotes += score
+    }
+    console.log(totalVotes);
+  });
+}
+
 function findBest() {
   // this took us 3 hours
   nObj = 110
