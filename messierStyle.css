@@ -210,10 +210,6 @@ body {
   float: left;
 }
 
-.results-link {
-  float: right;
-}
-
 .credit-button {
   box-sizing: border-box;
 
@@ -444,4 +440,15 @@ body {
 
 .top_container__image {
   border-radius: 15px;
+
+  width: 90%;
+  max-width: 400px;
+}
+
+@media screen and (max-width: 400px) {
+  .results-link {
+    position: relative;
+    top: 0;
+    margin-bottom: 5px;
+  }
 }
