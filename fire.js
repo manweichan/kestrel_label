@@ -1,13 +1,12 @@
-// Initialize Firebase
-var config = {
-  apiKey: "AIzaSyCWUda-jN_N_kCbV5EnqO8ED4o0BqEQc98",
-  authDomain: "messierrank.firebaseapp.com",
-  databaseURL: "https://messierrank.firebaseio.com",
-  projectId: "messierrank",
-  storageBucket: "messierrank.appspot.com",
-  messagingSenderId: "887901245951"
+// Your web app's Firebase configuration
+var firebaseConfig = {
+  apiKey: "AIzaSyCVSlJPInED77EMZ9NQopDhDHLhU-JaksY",
+  authDomain: "kestrel-labeler.firebaseapp.com",
+  projectId: "kestrel-labeler",
+  storageBucket: "kestrel-labeler.firebasestorage.app",
+  messagingSenderId: "374673310632",
+  appId: "1:374673310632:web:4bdad1fb8b543d56ad539d",
+  measurementId: "G-TC6Y3Z5R32"
 };
-firebase.initializeApp(config);
-
-// Annonymous Login
-firebase.auth().signInAnonymously();
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);

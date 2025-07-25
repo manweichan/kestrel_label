@@ -12,90 +12,39 @@
 <body>
   <div class='title'>
     <h1>
-      Select your preferred Messier object
+      Data Labeler
     </h1> 
-    <center>Click or use arrow keys</center>
-    <div class="links-box links-box-full">
-      <a href="about.html" class="link"> About </a>
-      <a href="results.html" class="link"> Results </a>
-    </div>
+    <center>Use left/right arrow keys to label: Right for "good", left for "bad"</center>
+
   </div>
 
-  <div class='rank-box'>
-    <div class="messier_container obj_1">
-      <div class="messier_image_cont">
-        <div class="loading">
-          Loading...
-        </div>
-        <img class="messier_image">
-
-        </img>
-      </div>
-
-      <div class="messier_label">
-      </div>
-    </div>
-
-    <div class="messier_container obj_2">
-      <div class="messier_image_cont">
-        <div class="loading">
-          Loading...
-        </div>
-        <img class="messier_image">
-        </img>
-      </div>
-
-      <div class="messier_label">
-      </div>
-    </div>
+  <div id="adminThresholdUI" style="display:none; margin: 20px auto; max-width: 400px; text-align:center;">
+    <label for="thresholdInput" style="font-size:1.1em;">Consensus Threshold (0-1): </label>
+    <input type="number" id="thresholdInput" min="0" max="1" step="0.01" style="width:80px; font-size:1.1em;">
+    <button id="setThresholdBtn" style="font-size:1.1em;">Set Threshold</button>
+    <span id="thresholdStatus" style="margin-left:10px; color:green;"></span>
   </div>
+  <div id="entryInfo" style="font-size:1.2em; margin: 20px 0; text-align:center;"></div>
+  <center>
+    <canvas id="dataPlot" width="600" height="200" style="border:1px solid #ccc;"></canvas>
+  </center>
 
-  <div class="links-box links-box-mobile">
-    <a href="about.html" class="link"> About </a>
-    <a href="results.html" class="link"> Results </a>
-  </div>
-
-  <!-- <div class="links-tray">
-    <div class="about-link">
-      <a href="about.html" class="about-button">
-        About
-      </a>
-    </div>
-
-    <div class="results-link">
-      <a href="results.html" class="about-button">
-        Results
-      </a>
-    </div>
-  </div> -->
-
-  <div class="credits">
-    <div class="credit">
-      <a href="https://twitter.com/NicholasMehrle" class="credit-button" target="_blank">
-        @NicholasMehrle
-      </a>
-    </div>
-    
-    <div class="credit">
-      <a href="https://twitter.com/KaleyBrauer" class="credit-button" target="_blank">
-        @KaleyBrauer
-      </a>
-    </div>
-
-    <div class="credit">
-      <a href="https://twitter.com/davidberardo_" class="credit-button" target="_blank">
-        @DavidBerardo_
-      </a>
-    </div>
+  <div id="passwordOverlay" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:#fff;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+    <div style="font-size:1.3em;margin-bottom:10px;">Enter Password to Access</div>
+    <input type="password" id="passwordInput" style="font-size:1.1em;padding:5px;">
+    <button id="passwordBtn" style="font-size:1.1em;margin-top:10px;">Enter</button>
+    <div id="passwordError" style="color:red;margin-top:10px;"></div>
   </div>
 
   <script type="text/javascript" src="vendor/jquery.min.js"></script>
 
-  <script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-database.js"></script>
+  <!-- Firebase scripts FIRST -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+  <!-- THEN your own scripts -->
   <script type="text/javascript" src="fire.js"></script>
-  <script type="text/javascript" src="messierRank.js"></script>
+  <script type="text/javascript" src="labeler.js"></script>
 </body>
 </html>
