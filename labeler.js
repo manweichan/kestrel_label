@@ -57,57 +57,13 @@ function plotData(data) {
   ctx.stroke();
 }
 
-let threshold = 0.7; // Default, will be loaded from Firebase
-let userId = null;
-
-// Fetch threshold from Firebase
-function fetchThreshold() {
-  return firebase.database().ref('config/labeling_threshold').once('value').then(snapshot => {
-    const val = snapshot.val();
-    if (typeof val === 'number') threshold = val;
-  });
-}
-
-// Fetch all labels for a given entry
-function fetchLabelsForEntry(entry) {
-  return firebase.database().ref('test_labels').orderByChild('entryKey').equalTo(entryKey(entry)).once('value').then(snapshot => {
-    const labels = [];
-    snapshot.forEach(child => {
-      labels.push(child.val());
-    });
-    return labels;
-  });
-}
-
-// Helper to create a unique key for each entry
-function entryKey(entry) {
-  return `${entry.day}|${entry.station}|${entry.satellite}`;
-}
-
-// Show current entry info and consensus
-async function showEntry(entry) {
+// Show current entry info
+function showEntry(entry) {
   document.getElementById('entryInfo').textContent = `Day: ${entry.day} | Station: ${entry.station} | Satellite: ${entry.satellite}`;
   plotData(entry.data);
-  // Fetch and display consensus
-  const labels = await fetchLabelsForEntry(entry);
-  const goodCount = labels.filter(l => l.label === 'good').length;
-  const total = labels.length;
-  let consensusText = 'Consensus: Not enough data';
-  if (total > 0) {
-    const percentGood = goodCount / total;
-    consensusText = `Consensus: ${percentGood >= threshold ? 'Good' : 'Bad'} (${(percentGood*100).toFixed(1)}% good, threshold ${(threshold*100).toFixed(1)}%)`;
-  }
-  let consensusDiv = document.getElementById('consensusInfo');
-  if (!consensusDiv) {
-    consensusDiv = document.createElement('div');
-    consensusDiv.id = 'consensusInfo';
-    consensusDiv.style = 'font-size:1.1em; margin: 10px 0; text-align:center;';
-    document.getElementById('entryInfo').after(consensusDiv);
-  }
-  consensusDiv.textContent = consensusText;
 }
 
-// Save label to Firebase (allow multiple labels per user/entry)
+// Save label to Firebase
 function saveLabel(entry, label) {
   if (!userId) return;
   const labelObj = {
@@ -116,8 +72,7 @@ function saveLabel(entry, label) {
     station: entry.station,
     satellite: entry.satellite,
     label,
-    timestamp: Date.now(),
-    entryKey: entryKey(entry)
+    timestamp: Date.now()
   };
   firebase.database().ref('test_labels').push(labelObj);
 }
@@ -126,6 +81,7 @@ function saveLabel(entry, label) {
 let labeledKeys = new Set();
 let entries = [];
 let currentIdx = null;
+let userId = null;
 
 function showRandomEntry() {
   // Find entries not labeled in this session
@@ -142,6 +98,11 @@ function showRandomEntry() {
   showEntry(entries[currentIdx]);
 }
 
+// Helper to create a unique key for each entry
+function entryKey(entry) {
+  return `${entry.day}|${entry.station}|${entry.satellite}`;
+}
+
 function handleLabel(label) {
   if (currentIdx === null) return;
   saveLabel(entries[currentIdx], label);
@@ -154,39 +115,6 @@ window.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft') handleLabel('bad');
   if (e.key === 'ArrowRight') handleLabel('good');
 });
-
-// Admin UI for threshold adjustment (only show on localhost)
-function setupAdminThresholdUI() {
-  const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  const adminDiv = document.getElementById('adminThresholdUI');
-  if (!adminDiv || !isLocalhost) return;
-  adminDiv.style.display = '';
-  const input = document.getElementById('thresholdInput');
-  const btn = document.getElementById('setThresholdBtn');
-  const status = document.getElementById('thresholdStatus');
-  // Load current threshold
-  firebase.database().ref('config/labeling_threshold').once('value').then(snap => {
-    const val = snap.val();
-    if (typeof val === 'number') input.value = val;
-    else input.value = threshold;
-  });
-  btn.onclick = () => {
-    const val = parseFloat(input.value);
-    if (isNaN(val) || val < 0 || val > 1) {
-      status.textContent = 'Enter a value between 0 and 1';
-      status.style.color = 'red';
-      return;
-    }
-    firebase.database().ref('config/labeling_threshold').set(val).then(() => {
-      status.textContent = 'Threshold updated!';
-      status.style.color = 'green';
-      threshold = val;
-    }).catch(err => {
-      status.textContent = 'Error updating threshold';
-      status.style.color = 'red';
-    });
-  };
-}
 
 // Quick and dirty password protection
 let PASSWORD = "stelluvia"; // Change this to your desired password
@@ -219,7 +147,6 @@ function startApp() {
   // Sign in anonymously
   firebase.auth().signInAnonymously().catch(console.error).then(async () => {
     userId = firebase.auth().currentUser ? firebase.auth().currentUser.uid : null;
-    await fetchThreshold();
     entries = await loadCSV('test_data.csv');
     // Fetch all labels by this user to initialize labeledKeys
     const userLabelsSnap = await firebase.database().ref('test_labels').orderByChild('userId').equalTo(userId).once('value');
@@ -228,7 +155,6 @@ function startApp() {
       if (val.entryKey) labeledKeys.add(val.entryKey);
     });
     showRandomEntry();
-    setupAdminThresholdUI();
   });
 }
 
