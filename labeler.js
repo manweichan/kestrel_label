@@ -127,6 +127,7 @@ function setupMobileTouch() {
 
   // Detect mobile device
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
   const mobileHint = document.getElementById('mobileHint');
   const desktopHint = document.getElementById('desktopHint');
   
@@ -135,8 +136,19 @@ function setupMobileTouch() {
     if (desktopHint) desktopHint.style.display = 'none';
   }
 
+  // Safari-specific CSS fixes
+  if (isSafari) {
+    plotElement.style.webkitTouchCallout = 'none';
+    plotElement.style.webkitUserSelect = 'none';
+    plotElement.style.khtmlUserSelect = 'none';
+    plotElement.style.mozUserSelect = 'none';
+    plotElement.style.msUserSelect = 'none';
+    plotElement.style.userSelect = 'none';
+  }
+
   // Prevent default touch behaviors that interfere with swiping
   plotElement.addEventListener('touchstart', function(e) {
+    console.log('Touch start detected');
     e.preventDefault();
     e.stopPropagation();
     isDragging = true;
@@ -145,9 +157,11 @@ function setupMobileTouch() {
     plotElement.style.transition = 'none';
     plotElement.style.userSelect = 'none';
     plotElement.style.webkitUserSelect = 'none';
-  }, { passive: false });
+    return false; // Prevent default for Safari
+  }, { passive: false, capture: true });
 
   plotElement.addEventListener('touchmove', function(e) {
+    console.log('Touch move detected');
     e.preventDefault();
     e.stopPropagation();
     if (!isDragging) return;
@@ -170,9 +184,11 @@ function setupMobileTouch() {
     } else {
       plotElement.style.backgroundColor = 'transparent';
     }
-  }, { passive: false });
+    return false; // Prevent default for Safari
+  }, { passive: false, capture: true });
 
   plotElement.addEventListener('touchend', function(e) {
+    console.log('Touch end detected');
     e.preventDefault();
     e.stopPropagation();
     if (!isDragging) return;
@@ -196,7 +212,8 @@ function setupMobileTouch() {
       console.log('Swipe left - labeling as bad');
       handleLabel('bad');
     }
-  }, { passive: false });
+    return false; // Prevent default for Safari
+  }, { passive: false, capture: true });
 
   // Mouse events for desktop testing (keep existing)
   plotElement.addEventListener('mousedown', function(e) {
@@ -250,6 +267,21 @@ function setupMobileTouch() {
 
   // Add touch-action CSS to prevent browser handling
   plotElement.style.touchAction = 'none';
+  
+  // Additional Safari-specific event prevention
+  if (isSafari) {
+    plotElement.addEventListener('gesturestart', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+    
+    plotElement.addEventListener('gesturechange', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+    
+    plotElement.addEventListener('gestureend', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+  }
 }
 
 // Quick and dirty password protection
