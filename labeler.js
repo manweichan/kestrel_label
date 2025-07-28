@@ -135,23 +135,26 @@ function setupMobileTouch() {
     if (desktopHint) desktopHint.style.display = 'none';
   }
 
-  // Touch start
+  // Prevent default touch behaviors that interfere with swiping
   plotElement.addEventListener('touchstart', function(e) {
     e.preventDefault();
+    e.stopPropagation();
     isDragging = true;
     startX = e.touches[0].clientX;
     currentX = startX;
     plotElement.style.transition = 'none';
-  });
+    plotElement.style.userSelect = 'none';
+    plotElement.style.webkitUserSelect = 'none';
+  }, { passive: false });
 
-  // Touch move
   plotElement.addEventListener('touchmove', function(e) {
     e.preventDefault();
+    e.stopPropagation();
     if (!isDragging) return;
     
     currentX = e.touches[0].clientX;
     const deltaX = currentX - startX;
-    const maxDelta = 100; // Maximum drag distance
+    const maxDelta = 150; // Increased maximum drag distance
     
     // Limit the drag distance
     const limitedDelta = Math.max(-maxDelta, Math.min(maxDelta, deltaX));
@@ -160,38 +163,42 @@ function setupMobileTouch() {
     plotElement.style.transform = `translateX(${limitedDelta}px)`;
     
     // Change background color based on direction
-    if (limitedDelta > 20) {
-      plotElement.style.backgroundColor = 'rgba(0, 255, 0, 0.1)'; // Green for good
-    } else if (limitedDelta < -20) {
-      plotElement.style.backgroundColor = 'rgba(255, 0, 0, 0.1)'; // Red for bad
+    if (limitedDelta > 30) {
+      plotElement.style.backgroundColor = 'rgba(0, 255, 0, 0.2)'; // Green for good
+    } else if (limitedDelta < -30) {
+      plotElement.style.backgroundColor = 'rgba(255, 0, 0, 0.2)'; // Red for bad
     } else {
       plotElement.style.backgroundColor = 'transparent';
     }
-  });
+  }, { passive: false });
 
-  // Touch end
   plotElement.addEventListener('touchend', function(e) {
     e.preventDefault();
+    e.stopPropagation();
     if (!isDragging) return;
     
     isDragging = false;
     const deltaX = currentX - startX;
-    const threshold = 50; // Minimum swipe distance to trigger
+    const threshold = 80; // Increased threshold for mobile
     
     // Reset plot position with animation
     plotElement.style.transition = 'transform 0.3s ease, background-color 0.3s ease';
     plotElement.style.transform = 'translateX(0px)';
     plotElement.style.backgroundColor = 'transparent';
+    plotElement.style.userSelect = '';
+    plotElement.style.webkitUserSelect = '';
     
     // Trigger labeling if swipe distance is sufficient
     if (deltaX > threshold) {
+      console.log('Swipe right - labeling as good');
       handleLabel('good');
     } else if (deltaX < -threshold) {
+      console.log('Swipe left - labeling as bad');
       handleLabel('bad');
     }
-  });
+  }, { passive: false });
 
-  // Mouse events for desktop testing
+  // Mouse events for desktop testing (keep existing)
   plotElement.addEventListener('mousedown', function(e) {
     isDragging = true;
     startX = e.clientX;
@@ -240,6 +247,9 @@ function setupMobileTouch() {
   plotElement.addEventListener('selectstart', function(e) {
     if (isDragging) e.preventDefault();
   });
+
+  // Add touch-action CSS to prevent browser handling
+  plotElement.style.touchAction = 'none';
 }
 
 // Quick and dirty password protection
