@@ -82,6 +82,10 @@ let labeledKeys = new Set();
 let entries = [];
 let currentIdx = null;
 let userId = null;
+let isDragging = false;
+let startX = 0;
+let currentX = 0;
+let plotElement = null;
 
 function showRandomEntry() {
   // Find entries not labeled in this session
@@ -115,6 +119,128 @@ window.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft') handleLabel('bad');
   if (e.key === 'ArrowRight') handleLabel('good');
 });
+
+// Mobile touch/swipe functionality
+function setupMobileTouch() {
+  plotElement = document.getElementById('dataPlot');
+  if (!plotElement) return;
+
+  // Detect mobile device
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const mobileHint = document.getElementById('mobileHint');
+  const desktopHint = document.getElementById('desktopHint');
+  
+  if (isMobile) {
+    if (mobileHint) mobileHint.style.display = 'inline';
+    if (desktopHint) desktopHint.style.display = 'none';
+  }
+
+  // Touch start
+  plotElement.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    isDragging = true;
+    startX = e.touches[0].clientX;
+    currentX = startX;
+    plotElement.style.transition = 'none';
+  });
+
+  // Touch move
+  plotElement.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    if (!isDragging) return;
+    
+    currentX = e.touches[0].clientX;
+    const deltaX = currentX - startX;
+    const maxDelta = 100; // Maximum drag distance
+    
+    // Limit the drag distance
+    const limitedDelta = Math.max(-maxDelta, Math.min(maxDelta, deltaX));
+    
+    // Move the plot with the finger
+    plotElement.style.transform = `translateX(${limitedDelta}px)`;
+    
+    // Change background color based on direction
+    if (limitedDelta > 20) {
+      plotElement.style.backgroundColor = 'rgba(0, 255, 0, 0.1)'; // Green for good
+    } else if (limitedDelta < -20) {
+      plotElement.style.backgroundColor = 'rgba(255, 0, 0, 0.1)'; // Red for bad
+    } else {
+      plotElement.style.backgroundColor = 'transparent';
+    }
+  });
+
+  // Touch end
+  plotElement.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    if (!isDragging) return;
+    
+    isDragging = false;
+    const deltaX = currentX - startX;
+    const threshold = 50; // Minimum swipe distance to trigger
+    
+    // Reset plot position with animation
+    plotElement.style.transition = 'transform 0.3s ease, background-color 0.3s ease';
+    plotElement.style.transform = 'translateX(0px)';
+    plotElement.style.backgroundColor = 'transparent';
+    
+    // Trigger labeling if swipe distance is sufficient
+    if (deltaX > threshold) {
+      handleLabel('good');
+    } else if (deltaX < -threshold) {
+      handleLabel('bad');
+    }
+  });
+
+  // Mouse events for desktop testing
+  plotElement.addEventListener('mousedown', function(e) {
+    isDragging = true;
+    startX = e.clientX;
+    currentX = startX;
+    plotElement.style.transition = 'none';
+  });
+
+  plotElement.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    
+    currentX = e.clientX;
+    const deltaX = currentX - startX;
+    const maxDelta = 100;
+    
+    const limitedDelta = Math.max(-maxDelta, Math.min(maxDelta, deltaX));
+    plotElement.style.transform = `translateX(${limitedDelta}px)`;
+    
+    if (limitedDelta > 20) {
+      plotElement.style.backgroundColor = 'rgba(0, 255, 0, 0.1)';
+    } else if (limitedDelta < -20) {
+      plotElement.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+    } else {
+      plotElement.style.backgroundColor = 'transparent';
+    }
+  });
+
+  plotElement.addEventListener('mouseup', function(e) {
+    if (!isDragging) return;
+    
+    isDragging = false;
+    const deltaX = currentX - startX;
+    const threshold = 50;
+    
+    plotElement.style.transition = 'transform 0.3s ease, background-color 0.3s ease';
+    plotElement.style.transform = 'translateX(0px)';
+    plotElement.style.backgroundColor = 'transparent';
+    
+    if (deltaX > threshold) {
+      handleLabel('good');
+    } else if (deltaX < -threshold) {
+      handleLabel('bad');
+    }
+  });
+
+  // Prevent text selection during drag
+  plotElement.addEventListener('selectstart', function(e) {
+    if (isDragging) e.preventDefault();
+  });
+}
 
 // Quick and dirty password protection
 let PASSWORD = "stelluvia"; // Change this to your desired password
@@ -155,6 +281,7 @@ function startApp() {
       if (val.entryKey) labeledKeys.add(val.entryKey);
     });
     showRandomEntry();
+    setupMobileTouch(); // Add mobile touch functionality
   });
 }
 
