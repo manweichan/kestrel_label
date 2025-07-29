@@ -20,14 +20,17 @@ from collections import defaultdict
 # =============================================================================
 
 # Firebase configuration
-FIREBASE_URL = "https://kestrel-labeler-default-rtdb.firebaseio.com/test_labels.json"
+FIREBASE_URL = "https://kestrel-labeler-default-rtdb.firebaseio.com/glenn_data.json"
 
 # Data file paths
-DATA_FILE_PATH = "test_data.csv"
-OUTPUT_FILE = "good_data_entries.csv"
+DATA_FILE_PATH = "real_data_with_latlon.csv"
+OUTPUT_FILE = "good_data_entries_glenn.csv"
 
 # Analysis parameters
-THRESHOLD = 0.7  # 70% of users must label as "good" for consensus
+THRESHOLD = 0.5  # 70% of users must label as "good" for consensus
+
+# the date you used in your CSV 'day' column
+LAUNCH_DATE = "01/16/2025"
 
 # =============================================================================
 # FUNCTIONS
@@ -39,6 +42,10 @@ def download_firebase_data():
     response = requests.get(FIREBASE_URL)
     if response.status_code == 200:
         data = response.json()
+        # print(f"Downloaded {len(data)} records from Firebase")  
+        # for i,(k,v) in enumerate(data.items()):  
+        #     if i < 5:  
+        #         print("  ", k, "→", v)  
         if data is None:
             print("No data found in Firebase.")
             return {}
@@ -65,10 +72,20 @@ def calculate_consensus(labels_data):
     
     # Group labels by entry
     entry_labels = defaultdict(list)
+    print("Label keys examples:", list(entry_labels.keys())[:5])
+
     for label_id, label_data in labels_data.items():
         if isinstance(label_data, dict):
             # Create unique key for the entry
-            key = f"{label_data.get('day', '')}|{label_data.get('station', '')}|{label_data.get('satellite', '')}"
+            # key = f"{label_data.get('day', '')}|{label_data.get('station', '')}|{label_data.get('satellite', '')}"
+            raw_day = label_data.get('day','').strip()
+            # if it looks like HH:MM:SS, add the date
+            if len(raw_day.split(':')) == 3 and len(raw_day) == 8:
+                label_day = f"{LAUNCH_DATE} {raw_day}"
+            else:
+                label_day = raw_day
+
+            key = f"{label_day}|{label_data.get('station','')}|{label_data.get('satellite','')}"
             entry_labels[key].append(label_data.get('label', ''))
     
     # Calculate consensus for each entry
@@ -102,6 +119,7 @@ def extract_good_data(consensus_results, csv_data):
             entry['total_labels'] = consensus['total_count']
             entry['good_labels'] = consensus['good_count']
             good_entries.append(entry)
+            
     
     return good_entries
 
@@ -160,6 +178,7 @@ def main():
     
     # Step 2: Load CSV data
     csv_data = load_csv_data()
+    print("CSV keys examples:", list(csv_data.keys())[:5])
     if not csv_data:
         print(f"No CSV data found in {DATA_FILE_PATH}. Exiting.")
         return

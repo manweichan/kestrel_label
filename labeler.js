@@ -1,32 +1,36 @@
 // labeler.js
 // Handles loading CSV, displaying data, and labeling
 
-// Utility to parse CSV
 function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  const headers = lines[0].split(',');
-  return lines.slice(1).map(line => {
-    // Only split on first 3 commas, rest is data
-    const [day, station, satellite, ...dataArr] = line.split(',');
-    let dataStr = dataArr.join(',').trim();
-    // Remove leading/trailing quotes (single or double)
-    dataStr = dataStr.replace(/^['"]+|['"]+$/g, '');
-    let data;
-    try {
-      data = JSON.parse(dataStr);
-      if (!Array.isArray(data)) throw new Error('Data is not array');
-    } catch (e) {
-      console.error('Failed to parse data field:', {raw: dataArr.join(','), cleaned: dataStr, error: e});
-      data = [];
-    }
-    return {
-      day: day && day.trim(),
-      station: station && station.trim(),
-      satellite: satellite && satellite.trim(),
-      data
-    };
-  }).filter(entry => Array.isArray(entry.data) && entry.data.length > 0);
-}
+     const lines = text.trim().split('\n');
+     return lines.slice(1).map(line => {
+         // split on commas outside quotes
+           const parts = [], re = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
+         line.match(re).forEach(s => parts.push(s.replace(/^"|"$/g, '')));
+    
+           const [day, station, satellite] = parts;
+         // helper to JSON‑parse one of the 3 array columns in order
+           function getArray(startIdx) {
+               let str = parts[startIdx];
+               // if it doesn’t end in ']', keep appending next parts
+                 let idx = startIdx;
+               while (!str.trim().endsWith(']') && ++idx < parts.length) {
+                   str += ',' + parts[idx];
+                 }
+                str = str.replace(/\bnan\b/gi, 'null');
+               return JSON.parse(str);
+             }
+      
+           const data = getArray(3);
+         const lat = getArray(4);
+         const lon = getArray(5);
+    
+          return { day, station, satellite, data, lat, lon };
+      });
+  }
+
+    
+
 
 // Load CSV file
 async function loadCSV(url) {
@@ -35,16 +39,20 @@ async function loadCSV(url) {
   return parseCSV(text);
 }
 
-// Plot data using Canvas
+// // Plot data using Canvas
 function plotData(data) {
   const canvas = document.getElementById('dataPlot');
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const w = canvas.width;
+  const h = canvas.height;
+
   // Find min/max for scaling
   const min = Math.min(...data);
   const max = Math.max(...data);
-  const w = canvas.width;
-  const h = canvas.height;
+
+  // Draw data line
   ctx.beginPath();
   data.forEach((v, i) => {
     const x = (i / (data.length - 1)) * w;
@@ -55,12 +63,116 @@ function plotData(data) {
   ctx.strokeStyle = '#0074D9';
   ctx.lineWidth = 2;
   ctx.stroke();
+
+  // Title annotation for launch lines
+  ctx.fillStyle = '#000';
+  ctx.font = '16px sans-serif';
+  ctx.textBaseline = 'top';
+  ctx.textAlign = 'center';
+  ctx.fillText('Red line = 07:03 (launch); Blue line = 07:13 (launch +10 min)', w / 2, 5);
+
+  // Time reference labels
+  ctx.fillStyle = '#000';
+  ctx.font = '14px sans-serif';
+  ctx.textBaseline = 'bottom';
+
+  // Start and end times
+  const startTime = '06:00:00';
+  const endTime = '08:02:30';
+
+  // Bottom-left label
+  ctx.textAlign = 'left';
+  ctx.fillText(startTime, 5, h - 5);
+
+  // Bottom-right label
+  ctx.textAlign = 'right';
+  ctx.fillText(endTime, w - 5, h - 5);
+
+  // Vertical lines for launch events
+  const launchIdx = 126;
+  const launch10Idx = 146;
+  const xLaunch = (launchIdx / (data.length - 1)) * w;
+  const xLaunch10 = (launch10Idx / (data.length - 1)) * w;
+
+  // Launch line (red)
+  ctx.beginPath();
+  ctx.moveTo(xLaunch, 0);
+  ctx.lineTo(xLaunch, h);
+  ctx.strokeStyle = 'red';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Launch +10min line (blue)
+  ctx.beginPath();
+  ctx.moveTo(xLaunch10, 0);
+  ctx.lineTo(xLaunch10, h);
+  ctx.strokeStyle = 'blue';
+  ctx.lineWidth = 1;
+  ctx.stroke();
 }
 
-// Show current entry info
+let map;  // Leaflet map instance
+
+function initMap() {
+  map = L.map('mapPlot', {
+    // center & zoom so you see the whole box initially:
+    center: [(10 + 35) / 2, (-90 + -60) / 2],
+    zoom: 4,
+
+    // lock the viewport so it can’t pan/zoom outside:
+    maxBounds: [[10, -90], [35, -60]],
+    maxBoundsViscosity: 1.0,
+
+    // optional: turn off zoom control if you like
+    // zoomControl: false
+  });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+}
+
+// Plot lat/lon points with custom colors (green default)
+function plotMap(latArr, lonArr) {
+  if (!map) initMap();
+  // remove previous circleMarkers
+  map.eachLayer(layer => { if (layer instanceof L.CircleMarker) map.removeLayer(layer); });
+
+  const launchIdx = 126, launch10Idx = 146;
+
+  // First plot all green points (excluding launch and +10)
+  latArr.forEach((lat, i) => {
+    if (i === launchIdx || i === launch10Idx) return;
+    const lon = lonArr[i];
+    if (isNaN(lat) || isNaN(lon)) return;
+    L.circleMarker([lat, lon], { radius: 4, color: 'green', fillOpacity: 0.7 }).addTo(map);
+  });
+
+  // Then plot launch (red)
+  let lat0 = latArr[launchIdx], lon0 = lonArr[launchIdx];
+  if (!isNaN(lat0) && !isNaN(lon0)) {
+    L.circleMarker([lat0, lon0], { radius: 6, color: 'red', fillOpacity: 1.0 }).addTo(map);
+  }
+
+  // Then plot +10min (blue)
+  let lat1 = latArr[launch10Idx], lon1 = lonArr[launch10Idx];
+  if (!isNaN(lat1) && !isNaN(lon1)) {
+    L.circleMarker([lat1, lon1], { radius: 6, color: 'blue', fillOpacity: 1.0 }).addTo(map);
+  }
+}
+
+
+// // Show current entry info
+// function showEntry(entry) {
+//   document.getElementById('entryInfo').textContent = `Day: ${entry.day} | Station: ${entry.station} | Satellite: ${entry.satellite}`;
+//   plotData(entry.data);
+// }
+
+// Display a selected entry
 function showEntry(entry) {
-  document.getElementById('entryInfo').textContent = `Day: ${entry.day} | Station: ${entry.station} | Satellite: ${entry.satellite}`;
+  document.getElementById('entryInfo').textContent =
+    `Day: ${entry.day} | Station: ${entry.station} | Satellite: ${entry.satellite}`;
   plotData(entry.data);
+  plotMap(entry.lat, entry.lon);
 }
 
 // Save label to Firebase
@@ -74,7 +186,7 @@ function saveLabel(entry, label) {
     label,
     timestamp: Date.now()
   };
-  firebase.database().ref('test_labels').push(labelObj);
+  firebase.database().ref('glenn_data').push(labelObj);
 }
 
 // Track which entries the current user has labeled in this session
@@ -315,9 +427,10 @@ function startApp() {
   // Sign in anonymously
   firebase.auth().signInAnonymously().catch(console.error).then(async () => {
     userId = firebase.auth().currentUser ? firebase.auth().currentUser.uid : null;
-    entries = await loadCSV('test_data.csv');
+    // entries = await loadCSV('test_data.csv');
+    entries = await loadCSV('real_data_with_latlon.csv');
     // Fetch all labels by this user to initialize labeledKeys
-    const userLabelsSnap = await firebase.database().ref('test_labels').orderByChild('userId').equalTo(userId).once('value');
+    const userLabelsSnap = await firebase.database().ref('glenn_data').orderByChild('userId').equalTo(userId).once('value');
     userLabelsSnap.forEach(child => {
       const val = child.val();
       if (val.entryKey) labeledKeys.add(val.entryKey);
