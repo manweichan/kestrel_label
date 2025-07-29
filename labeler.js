@@ -428,21 +428,7 @@ function startApp() {
   firebase.auth().signInAnonymously().catch(console.error).then(async () => {
     userId = firebase.auth().currentUser ? firebase.auth().currentUser.uid : null;
     // entries = await loadCSV('test_data.csv');
-    // Load and immediately filter
-    const allEntries = await loadCSV('real_data_with_latlon.csv');
-    entries = allEntries.filter(entry => {
-      // 1) full lat/lon stream must not be entirely bad
-      const allLatBad = entry.lat.every(v => v == null || isNaN(v) || v === 0);
-      const allLonBad = entry.lon.every(v => v == null || isNaN(v) || v === 0);
-      if (allLatBad && allLonBad) return false;
-
-      // 2) data after launch must have at least one non‑zero
-      const postLaunch = entry.data.slice(LAUNCH_IDX);
-      if (postLaunch.every(v => v === 0)) return false;
-
-      // otherwise keep it
-      return true;
-    });
+    entries = await loadCSV('real_data_with_latlon.csv');
     // Fetch all labels by this user to initialize labeledKeys
     const userLabelsSnap = await firebase.database().ref('glenn_data').orderByChild('userId').equalTo(userId).once('value');
     userLabelsSnap.forEach(child => {
