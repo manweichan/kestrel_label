@@ -52,6 +52,34 @@ function plotData(data) {
   const min = Math.min(...data);
   const max = Math.max(...data);
 
+  // ─── draw background grid ─────────────────────────────────────────────────
+  ctx.save();
+  ctx.strokeStyle = '#ccc';         // light gray
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);           // dashed lines: 4px on, 4px off
+
+  // vertical grid (10 divisions)
+  const xDivs = 10;
+  for (let i = 0; i <= xDivs; i++) {
+    const x = (i / xDivs) * w;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, h);
+    ctx.stroke();
+  }
+
+  // horizontal grid (5 divisions)
+  const yDivs = 5;
+  for (let j = 0; j <= yDivs; j++) {
+    const y = (j / yDivs) * h;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+
   // Draw data line
   ctx.beginPath();
   data.forEach((v, i) => {
@@ -129,6 +157,32 @@ function initMap() {
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
+
+  // --- add 5° grid lines ---
+  const latStep = 5,
+    lonStep = 5,
+    latMin = 10, latMax = 35,
+    lonMin = -120, lonMax = -30;
+
+  // horizontal (latitude) lines
+  for (let lat = latMin; lat <= latMax; lat += latStep) {
+    L.polyline([[lat, lonMin], [lat, lonMax]], {
+      color: 'gray',
+      weight: 1,
+      opacity: 0.5,
+      interactive: false
+    }).addTo(map);
+  }
+
+  // vertical (longitude) lines
+  for (let lon = lonMin; lon <= lonMax; lon += lonStep) {
+    L.polyline([[latMin, lon], [latMax, lon]], {
+      color: 'gray',
+      weight: 1,
+      opacity: 0.5,
+      interactive: false
+    }).addTo(map);
+  }
 }
 
 // Plot lat/lon points with custom colors (green default)
@@ -143,19 +197,19 @@ function plotMap(latArr, lonArr) {
   latArr.forEach((lat, i) => {
     if (i === launchIdx || i === launch10Idx) return;
     const lon = lonArr[i];
-    if (isNaN(lat) || isNaN(lon)) return;
+    // drop null/undefined or non‑finite
+    if (lat == null || lon == null || !Number.isFinite(lat) || !Number.isFinite(lon)) return;
     L.circleMarker([lat, lon], { radius: 4, color: 'green', fillOpacity: 0.7 }).addTo(map);
   });
 
   // Then plot launch (red)
   let lat0 = latArr[launchIdx], lon0 = lonArr[launchIdx];
-  if (!isNaN(lat0) && !isNaN(lon0)) {
+  if (lat0 != null && lon0 != null && Number.isFinite(lat0) && Number.isFinite(lon0)) {
     L.circleMarker([lat0, lon0], { radius: 6, color: 'red', fillOpacity: 1.0 }).addTo(map);
   }
 
-  // Then plot +10min (blue)
   let lat1 = latArr[launch10Idx], lon1 = lonArr[launch10Idx];
-  if (!isNaN(lat1) && !isNaN(lon1)) {
+  if (lat1 != null && lon1 != null && Number.isFinite(lat1) && Number.isFinite(lon1)) {
     L.circleMarker([lat1, lon1], { radius: 6, color: 'blue', fillOpacity: 1.0 }).addTo(map);
   }
 }
